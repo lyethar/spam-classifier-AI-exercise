@@ -15,12 +15,22 @@ Run:
 """
 
 import os
+import sys
 import pandas as pd
 import numpy as np
 from dataset import load_spam_dataset
-import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
+
+try:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    _HAS_PLOTS = True
+except ImportError:
+    _HAS_PLOTS = False
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
@@ -88,22 +98,30 @@ print(classification_report(y_test, y_pred, target_names=['ham', 'spam']))
 #   TP (bottom-right): Spam correctly caught
 
 cm = confusion_matrix(y_test, y_pred)
-plt.figure(figsize=(8, 6))
-sns.heatmap(
-    cm, annot=True, fmt='d', cmap='Blues',
-    xticklabels=['Predicted Ham', 'Predicted Spam'],
-    yticklabels=['Actual Ham', 'Actual Spam']
-)
-plt.title('Confusion Matrix — SMS Spam Classifier', fontsize=14, fontweight='bold')
-plt.ylabel('Actual Label')
-plt.xlabel('Predicted Label')
+print("\nConfusion matrix (rows = actual ham/spam, cols = predicted ham/spam):")
+print(cm)
 
-# Annotate what each quadrant means
-plt.tight_layout()
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'outputs')
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-plt.savefig(os.path.join(OUTPUT_DIR, 'confusion_matrix.png'), dpi=150)
-print(f"\n[+] Confusion matrix saved to outputs/confusion_matrix.png")
+if _HAS_PLOTS:
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(
+        cm, annot=True, fmt="d", cmap="Blues",
+        xticklabels=["Predicted Ham", "Predicted Spam"],
+        yticklabels=["Actual Ham", "Actual Spam"],
+    )
+    plt.title("Confusion Matrix — SMS Spam Classifier", fontsize=14, fontweight="bold")
+    plt.ylabel("Actual Label")
+    plt.xlabel("Predicted Label")
+    plt.tight_layout()
+    OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "outputs")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    plt.savefig(os.path.join(OUTPUT_DIR, "confusion_matrix.png"), dpi=150)
+    print("\n[+] Confusion matrix saved to outputs/confusion_matrix.png")
+else:
+    print(
+        "\n[!] matplotlib/seaborn not installed for this interpreter; skipped PNG export.\n"
+        f"    Install: {sys.executable} -m pip install matplotlib seaborn\n"
+        "    Or use the same `python` as your venv/conda env (not necessarily `python3`)."
+    )
 
 # ─────────────────────────────────────────────────────────
 # MODEL INTERPRETABILITY — TOP SPAM WORDS
@@ -126,14 +144,14 @@ top_spam_idx = np.argsort(spam_score)[-top_n:][::-1]
 top_ham_idx = np.argsort(spam_score)[:top_n]
 
 print("\n" + "=" * 60)
-print("  🔴 TOP SPAM INDICATOR WORDS (Red Team Intel)")
+print("  TOP SPAM INDICATOR WORDS (Red Team Intel)")
 print("  Words with highest spam log-probability weight")
 print("=" * 60)
 for idx in top_spam_idx:
     print(f"  {feature_names[idx]:<25} score: {spam_score[idx]:.3f}")
 
 print("\n" + "=" * 60)
-print("  🟢 TOP HAM INDICATOR WORDS")
+print("  TOP HAM INDICATOR WORDS")
 print("=" * 60)
 for idx in top_ham_idx:
     print(f"  {feature_names[idx]:<25} score: {spam_score[idx]:.3f}")
@@ -141,20 +159,22 @@ for idx in top_ham_idx:
 # ─────────────────────────────────────────────────────────
 # RED TEAM NOTE
 # ─────────────────────────────────────────────────────────
-print("""
-╔══════════════════════════════════════════════════════════╗
-║  🔴 RED TEAM NOTE                                        ║
-║                                                          ║
-║  The spam indicator words above reveal the exact         ║
-║  features this model uses to detect spam. An attacker    ║
-║  performing adversarial evasion would:                   ║
-║                                                          ║
-║  1. Identify high-weight spam words (from this output)   ║
-║  2. Avoid or obfuscate those words in crafted messages   ║
-║  3. Pad the message with high-weight ham words           ║
-║  4. Achieve misclassification without raising suspicion  ║
-║                                                          ║
-║  This is why model interpretability tools must be        ║
-║  access-controlled in production AI systems.             ║
-╚══════════════════════════════════════════════════════════╝
-""")
+print(
+    """
++----------------------------------------------------------+
+|  RED TEAM NOTE                                           |
+|                                                          |
+|  The spam indicator words above reveal the exact       |
+|  features this model uses to detect spam. An attacker    |
+|  performing adversarial evasion would:                   |
+|                                                          |
+|  1. Identify high-weight spam words (from this output) |
+|  2. Avoid or obfuscate those words in crafted messages |
+|  3. Pad the message with high-weight ham words           |
+|  4. Achieve misclassification without raising suspicion  |
+|                                                          |
+|  This is why model interpretability tools must be        |
+|  access-controlled in production AI systems.             |
++----------------------------------------------------------+
+"""
+)
