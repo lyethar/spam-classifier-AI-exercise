@@ -14,6 +14,7 @@ Run:
 import os
 import pandas as pd
 import joblib
+from dataset import load_spam_dataset
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -26,15 +27,13 @@ from sklearn.metrics import accuracy_score, classification_report
 # The UCI SMS Spam Collection dataset is a tab-separated file.
 # Each row has two fields: label (ham/spam) and the message text.
 #
-# pd.read_csv with sep='\t' tells pandas the columns are separated
-# by tabs. names=['label', 'message'] assigns column headers since
-# the raw file has none. encoding='latin-1' handles special characters
-# in some older SMS messages.
+# UCI ships tab-separated rows (no header). Kaggle mirrors often use CSV
+# with columns v1 (label) and v2 (message). load_spam_dataset handles both.
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'spam.csv')
 
 print("[*] Loading dataset...")
-df = pd.read_csv(DATA_PATH, sep='\t', names=['label', 'message'], encoding='latin-1')
+df = load_spam_dataset(DATA_PATH)
 
 print(f"[+] Dataset loaded: {len(df)} messages")
 print(f"    Spam:  {len(df[df['label'] == 'spam'])} messages")
@@ -47,10 +46,15 @@ print(f"    Ham:   {len(df[df['label'] == 'ham'])} messages")
 # We convert 'spam' → 1 and 'ham' → 0 using a simple map.
 # This is called binary label encoding.
 
-df['label_encoded'] = df['label'].map({'spam': 1, 'ham': 0})
+df["label_encoded"] = df["label"].map({"spam": 1, "ham": 0})
+unknown = df["label_encoded"].isna()
+if unknown.any():
+    n = int(unknown.sum())
+    df = df.loc[~unknown].copy()
+    print(f"[!] Dropped {n} row(s) with labels other than 'ham' or 'spam'.")
 
-X = df['message']           # Features: the raw SMS text
-y = df['label_encoded']     # Target: 0 (ham) or 1 (spam)
+X = df["message"]
+y = df["label_encoded"]
 
 # ─────────────────────────────────────────────────────────
 # STEP 3: TRAIN / TEST SPLIT
