@@ -1,6 +1,5 @@
 # 📱 SMS Spam Classifier — AI Security Portfolio
 
-> **Built as part of the HTB Academy: Applications of AI in InfoSec module.**  
 > This project demonstrates how to build, train, and evaluate an SMS spam classification model using Python and scikit-learn — and critically, examines it through an **AI Red Teaming lens**.
 
 ---
@@ -55,8 +54,8 @@ spam-classifier-htb/
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/lyethar/spam-classifier-htb.git
-cd spam-classifier-htb
+git clone https://github.com/lyethar/spam-classifier-AI-exercise.git
+cd spam-classifier-AI-exercise
 ```
 
 ### Step 2 — Create a Virtual Environment (Recommended)
@@ -91,8 +90,8 @@ The UCI SMS Spam Collection dataset is publicly available. Download it manually:
 Or via terminal:
 ```bash
 cd data/
-wget https://archive.ics.uci.edu/ml/machine-learning-databases/00228/smsspamcollection.zip
-unzip smsspamcollection.zip
+curl -L -o sms-spam-collection-dataset.zip https://www.kaggle.com/api/v1/datasets/download/uciml/sms-spam-collection-dataset
+unzip sms-spam-collection-dataset.zip
 mv SMSSpamCollection spam.csv
 ```
 
@@ -149,7 +148,7 @@ Then open `notebooks/spam_classifier_walkthrough.ipynb`.
 
 ---
 
-## 🔴 AI Red Teaming Analysis
+## AI Red Teaming Analysis
 
 > This section is the **security layer** that transforms this from a standard ML project into an AI security portfolio piece.
 
@@ -184,7 +183,7 @@ TF-IDF scores words based on frequency. If "FREE" and "WIN" are high-weight spam
 
 ### Attack Surface 3 — Model Extraction / Inference
 
-**What it is:** Repeatedly querying the model to reverse-engineer its decision boundary — understanding which words trigger spam classification.
+**What it is:** Repeatedly querying the model to reverse-engineer its decision boundary, understanding which words trigger spam classification.
 
 **How to probe this model:**
 ```python
