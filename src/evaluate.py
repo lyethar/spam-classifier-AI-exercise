@@ -17,6 +17,7 @@ Run:
 import os
 import pandas as pd
 import numpy as np
+from dataset import load_spam_dataset
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -37,11 +38,14 @@ if not os.path.exists(MODEL_PATH):
     print("[!] Model not found. Run 'python src/train.py' first.")
     exit(1)
 
-df = pd.read_csv(DATA_PATH, sep='\t', names=['label', 'message'], encoding='latin-1')
-df['label_encoded'] = df['label'].map({'spam': 1, 'ham': 0})
+df = load_spam_dataset(DATA_PATH)
+df["label_encoded"] = df["label"].map({"spam": 1, "ham": 0})
+unknown = df["label_encoded"].isna()
+if unknown.any():
+    df = df.loc[~unknown].copy()
 
-X = df['message']
-y = df['label_encoded']
+X = df["message"]
+y = df["label_encoded"]
 
 # Use the same random_state=42 split as train.py so we evaluate
 # on the exact same test set the model was never trained on
